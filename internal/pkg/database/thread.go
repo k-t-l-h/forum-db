@@ -143,7 +143,7 @@ func GetThreadsPosts(limit, since, desc, sort, check string) (models.Posts, int)
 ///thread/{slug_or_id}/vote
 func ThreadVote(check string, vote models.Vote) (models.Thread, int) {
 
-	thread, status := GetThreadBySlug(check, models.Thread{})
+	thread, status := GetSlugID(check, models.Thread{})
 	if status == NotFound {
 		return thread, NotFound
 	}
@@ -163,8 +163,7 @@ func ThreadVote(check string, vote models.Vote) (models.Thread, int) {
 		}
 	}
 
-	thread, _ = GetThreadBySlug(check, models.Thread{})
-
+	thread, status = GetThreadByID(thread.Id, models.Thread{})
 	return thread, OK
 }
 
@@ -201,28 +200,22 @@ func ThreadUpdate(check string, thread models.Thread) (models.Thread, int) {
 
 func ThreadVoteID(check int, vote models.Vote) (models.Thread, int) {
 
-
-		thread, status := GetThreadByID(check, models.Thread{})
-		if status == NotFound {
-			return thread, NotFound
-		}
-
-		query := `INSERT INTO VOTES (author, vote, thread) VALUES ($1, $2, $3)`
-		_, err := dbPool.Exec(query, vote.NickName, vote.Voice, thread.Id)
+	   query := `INSERT INTO VOTES (author, vote, thread) VALUES ($1, $2, $3)`
+		_, err := dbPool.Exec(query, vote.NickName, vote.Voice, check)
 
 		if err != nil {
 			if pqError, ok := err.(pgx.PgError); ok {
 				switch pqError.Code {
 				case "23503":
-					return thread, NotFound
+					return models.Thread{}, NotFound
 				case "23505":
 					upd := `UPDATE votes SET vote =  $1 WHERE author = $2 AND thread = $3`
-					dbPool.Exec(upd, vote.Voice, vote.NickName, thread.Id)
+					dbPool.Exec(upd, vote.Voice, vote.NickName, check)
 				}
 			}
 		}
 
-		thread, _ = GetThreadByID(check, models.Thread{})
+		thread, _ := GetThreadByID(check, models.Thread{})
 
 		return thread, OK
 	}
@@ -408,4 +401,19 @@ func GetThreadsPostsID(limit, since, desc, sort string, id int) (models.Posts, i
 	}
 
 	return ps, OK
+}
+
+func GetSlugID(check string, thread models.Thread) (models.Thread, int) {
+	var row *pgx.Row
+
+	query := `SELECT id FROM threads WHERE lower(slug) = lower($1)`
+	row = dbPool.QueryRow(query, check)
+
+	err := row.Scan(&thread.Id)
+
+	if err != nil {
+		return thread, NotFound
+	}
+
+	return thread, OK
 }

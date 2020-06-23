@@ -34,9 +34,10 @@ CREATE UNLOGGED TABLE users(
 );
 
 -- Покрывающие индексы
-CREATE INDEX check_name ON users(nickname);
-CREATE INDEX index_name ON users(email, fullname, nickname, about, lower(nickname), lower(email));
-CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname));
+CREATE INDEX check_lower_name ON users(lower(nickname));
+--CREATE INDEX index_name ON users(email, fullname, nickname, about, lower(nickname), lower(email));
+--CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname));
+CLUSTER users USING check_lower_name;
 
 
 CREATE UNLOGGED TABLE forums (
@@ -48,8 +49,7 @@ CREATE UNLOGGED TABLE forums (
 );
 
 
-CREATE INDEX  forum_slug ON forums(slug);
-CREATE INDEX forum_exist ON forums(slug, lower(slug));
+CREATE INDEX forum_slug ON forums(slug);
 CREATE INDEX lower_slug ON forums(lower(slug));
 CLUSTER forums USING lower_slug;
 
@@ -92,8 +92,9 @@ CREATE TRIGGER table_update_threads
 EXECUTE PROCEDURE update_user_forum_thread();
 
 
-CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
-CREATE INDEX lower_thread_name ON threads(lower(slug));
+--CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
+CREATE INDEX lower_thread_name_id ON threads(id, lower(slug));
+CREATE INDEX lower_thread_name ON threads(id, lower(slug));
 CLUSTER threads USING lower_thread_name;
 
 ---CREATE POST INDEX
@@ -171,8 +172,9 @@ CREATE UNLOGGED TABLE votes (
                          author citext references users(nickname),
                          vote int,
                          thread int references threads(id), --slug thread
-                         UNIQUE(author, thread)
+                         CONSTRAINT checks UNIQUE(author, thread)
 );
+
 
 CREATE OR REPLACE FUNCTION add_votes() RETURNS TRIGGER AS
 $add_votes$

@@ -10,22 +10,25 @@ var slugs map[string]string
 
 //DONE
 ///forum/create
+
+
 func CreateForum(forum models.Forum) ([]models.Forum, int) {
 
 	query := ` INSERT INTO forums (title, author, slug, posts, threads) 
 	VALUES ($1, $2, $3, $4, $5) 
-	RETURNING  title, author, slug, posts, threads;`
+	RETURNING slug;`
 
-	user, errs := GetUser(models.User{NickName: forum.User})
+	user, errs := CheckUser(models.User{NickName: forum.User})
 	if errs != OK {
 		return []models.Forum{}, UserNotFound
 	}
 
 	results := []models.Forum{}
-	res := models.Forum{}
+	res := forum
+	res.User = user.NickName
 
 	row := dbPool.QueryRow(query, forum.Title, user.NickName, forum.Slug, 0, 0)
-	err := row.Scan(&res.Title, &res.User, &res.Slug, &res.Posts, &res.Threads)
+	err := row.Scan(&res.Slug)
 
 	if err != nil {
 		if pqError, ok := err.(pgx.PgError); ok {
@@ -81,8 +84,9 @@ func CreateSlug(thread models.Thread) ([]models.Thread, int) {
 	t := thread
 
 	if thread.Slug != "" {
-		th, status := GetThreadBySlugOrId(thread.Slug, models.Thread{})
+		thread, status := CheckSlug(thread)
 		if status == OK {
+			th, _ := GetThreadBySlug(thread.Slug, t)
 			return []models.Thread{th}, ForumConflict
 		}
 	}
@@ -115,7 +119,6 @@ func CreateSlug(thread models.Thread) ([]models.Thread, int) {
 	return []models.Thread{t}, OK
 }
 
-///forum/{slug}/details
 ///forum/{slug}/details
 func GetForumBySlag(forum models.Forum) (models.Forum, int) {
 	query := `SELECT title, author, slug, posts, threads
@@ -156,7 +159,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
 
 	if err == nil {
 	}
-	_, state := GetForumBySlag(forum)
+	forum, state := ForumCheck(forum)
 	if state != OK {
 		return us, NotFound
 	}
@@ -363,4 +366,20 @@ func GetForumThreads(t models.Thread, limit, since, desc string) ([]models.Threa
 	}
 
 	return th, OK
+}
+
+func CheckSlug(thread models.Thread) (models.Thread, int) {
+	query := `SELECT slug, author
+				FROM threads 
+				WHERE lower(slug) = lower($1);`
+
+	row := dbPool.QueryRow(query, thread.Slug)
+
+	err := row.Scan(&thread.Slug, &thread.Author)
+
+	if err != nil {
+		return thread, NotFound
+	}
+
+	return thread, OK
 }
