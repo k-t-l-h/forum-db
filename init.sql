@@ -61,7 +61,7 @@ CREATE UNLOGGED TABLE forum_users(
 
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
 CREATE INDEX lower_forum ON forum_users(lower(forum));
-CLUSTER forum_users USING lower_forum;
+--CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
                          id serial PRIMARY KEY,
@@ -113,10 +113,19 @@ CREATE UNLOGGED TABLE posts (
 );
 
 --CREATE INDEX parent_thread_check ON posts (id, thread) WHERE parent = 0;
-CREATE INDEX posts_path_first on posts USING gin((path[1]));
---CREATE INDEX posts_thread_id on posts(id, thread);
-CLUSTER posts USING posts_path_first;
 
+
+CREATE INDEX inner_select_parent_tree ON posts ((path[1]), id);
+
+CREATE INDEX IF NOT EXISTS posts_thread_id_path_idx ON posts (thread, path);
+
+CREATE INDEX IF NOT EXISTS parent_tree ON posts (id, parent)  INCLUDE (thread) WHERE parent = 0;
+
+CREATE INDEX  posts_update_path ON posts (id, path, thread);
+--CLUSTER posts USING posts_path_first;
+
+CREATE INDEX posts_update_path_check ON posts (thread, id);
+CREATE INDEX  posts_update_path ON posts (id, path);
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
 $update_path$
@@ -138,6 +147,7 @@ BEGIN
     RETURN new;
 END
 $update_path$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER path_update_trigger
     BEFORE INSERT
