@@ -3,6 +3,7 @@ package database
 import (
 	"forum-db/internal/models"
 	"github.com/jackc/pgx"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -222,16 +223,17 @@ func ThreadVoteID(check int, vote models.Vote) (models.Thread, int) {
 
 
 func CreateThreadPostID(id int, posts []models.Post) ([]models.Post, int) {
-	thread := models.Thread{}
+	thread := models.Thread{Id:id}
 
-	query := `SELECT id, forum
+	query := `SELECT forum
 					FROM threads
 					WHERE id = $1`
 
 	row := dbPool.QueryRow(query, id)
-	err := row.Scan(&thread.Id, &thread.Forum)
+	err := row.Scan(&thread.Forum)
 
 	if err != nil {
+		log.Print(err)
 		return posts, NotFound
 	}
 
@@ -260,6 +262,7 @@ func CreateThreadPostID(id int, posts []models.Post) ([]models.Post, int) {
 		pr.CreatedAt = times.Format(time.RFC3339)
 
 		if err != nil {
+			log.Print(err)
 			tx.Rollback()
 			if pqError, ok := err.(pgx.PgError); ok {
 				switch pqError.Code {

@@ -5,7 +5,7 @@ ALTER SYSTEM SET shared_buffers = '256B';
 ALTER SYSTEM SET effective_cache_size = '768MB';
 ALTER SYSTEM SET checkpoint_completion_target = '0.9';
 ALTER SYSTEM SET random_page_cost = '1.1';
-ALTER SYSTEM SET effective_io_concurrency = '400';
+ALTER SYSTEM SET effective_io_concurrency = '200';
 ALTER SYSTEM SET seq_page_cost = '1.1';
 ALTER SYSTEM SET random_page_cost = '1.1';
 
@@ -48,18 +48,20 @@ CREATE UNLOGGED TABLE forums (
                         threads int
 );
 
-
-CREATE INDEX forum_slug ON forums(slug);
+--CREATE INDEX forum_slug ON forums(slug);
 CREATE INDEX lower_slug ON forums(lower(slug));
 CLUSTER forums USING lower_slug;
 
 CREATE UNLOGGED TABLE forum_users(
                       nickname citext references users(nickname),
-                      forum citext references forums(slug)
+                      forum citext references forums(slug) --,
+                     -- CONSTRAINT fk UNIQUE(nickname, forum)
+
 );
 
-CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
+--CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
 CREATE INDEX lower_forum ON forum_users(lower(forum));
+CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
                          id serial PRIMARY KEY,
@@ -80,7 +82,7 @@ BEGIN
     INSERT INTO forum_users(
         nickname,
         forum) VALUES (new.author, new.forum);
-    UPDATE forums SET threads = threads + 1 WHERE slug = new.forum;
+    UPDATE forums SET threads = threads + 1 WHERE lower(slug) = lower(new.forum);
     RETURN new;
 END
     $update_user_forum_thread$ LANGUAGE plpgsql;
@@ -93,13 +95,9 @@ EXECUTE PROCEDURE update_user_forum_thread();
 
 
 --CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
-CREATE INDEX lower_thread_name_id ON threads(id, lower(slug));
-CREATE INDEX lower_thread_name ON threads(id, lower(slug));
-CLUSTER threads USING lower_thread_name;
+CREATE INDEX lower_thread_name_id ON threads(lower(slug));
+CLUSTER threads USING lower_thread_name_id;
 
----CREATE POST INDEX
-CREATE INDEX threads_id_forum ON threads(id, forum);
-CREATE INDEX threads_id_forum_lower ON threads(id, forum, lower(slug));
 
 CREATE UNLOGGED TABLE posts (
                        id serial PRIMARY KEY ,
@@ -114,10 +112,10 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-
-CREATE INDEX posts_path_first on posts((path[1]));
-CREATE INDEX posts_thread_id on posts(id, thread);
-CREATE INDEX posts_trigger_update on posts(id, path);
+--CREATE INDEX parent_thread_check ON posts (id, thread) WHERE parent = 0;
+CREATE INDEX posts_path_first on posts USING gin((path[1]));
+--CREATE INDEX posts_thread_id on posts(id, thread);
+CLUSTER posts USING posts_path_first;
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
@@ -152,7 +150,7 @@ EXECUTE PROCEDURE update_path();
 CREATE OR REPLACE FUNCTION update_user_forum() RETURNS TRIGGER AS
 $update_user_forum$
 BEGIN
-    UPDATE forums SET posts = posts + 1 WHERE slug = new.forum;
+    UPDATE forums SET posts = posts + 1 WHERE lower(slug) = lower(new.forum);
     INSERT INTO forum_users(
         nickname,
         forum) VALUES (new.author, new.forum);
@@ -174,7 +172,7 @@ CREATE UNLOGGED TABLE votes (
                          thread int references threads(id), --slug thread
                          CONSTRAINT checks UNIQUE(author, thread)
 );
-
+CLUSTER votes USING checks;
 
 CREATE OR REPLACE FUNCTION add_votes() RETURNS TRIGGER AS
 $add_votes$
