@@ -1,16 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
-ALTER system SET log_min_duration_statement = 100;
-
-ALTER SYSTEM SET max_connections = '200';
-ALTER SYSTEM SET shared_buffers = '512B';
-ALTER SYSTEM SET effective_cache_size = '768MB';
-ALTER SYSTEM SET checkpoint_completion_target = '0.9';
-ALTER SYSTEM SET random_page_cost = '1.1';
-ALTER SYSTEM SET effective_io_concurrency = '200';
-ALTER SYSTEM SET wal_buffers = '6912kB';
-ALTER SYSTEM SET default_statistics_target = '100';
-ALTER SYSTEM SET seq_page_cost = '1.1';
 /*CREATE DATABASE forum
     WITH
     OWNER = postgres
@@ -32,10 +21,8 @@ CREATE UNLOGGED TABLE users(
 -- Покрывающие индексы
 --Get User
 CREATE INDEX users_full ON users (nickname, email, fullname, about);
---CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
---User Conflict
 CREATE INDEX index_name_get_user ON users (nickname, email);
-CREATE INDEX check_user ON users (nickname);
+CREATE INDEX check_user ON users (nickname DESC );
 
 
 
@@ -47,8 +34,7 @@ CREATE UNLOGGED TABLE forums (
                         threads int
 );
 
---CREATE UNIQUE INDEX lower_slug ON forums(lower(slug));
-CREATE UNIQUE INDEX lower_slug_title ON forums(slug, title);
+--CREATE UNIQUE INDEX lower_slug_title ON forums(slug, title);
 
 CREATE UNLOGGED TABLE forum_users(
                       nickname citext references users(nickname),
@@ -56,10 +42,11 @@ CREATE UNLOGGED TABLE forum_users(
                      CONSTRAINT fk UNIQUE(nickname, forum)
 
 );
-
+CREATE INDEX fu_nick ON forum_users(nickname);
+CREATE INDEX fu_for ON forum_users(forum);
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
 --CREATE INDEX lower_forum ON forum_users USING hash(forum);
-CREATE INDEX lower_both ON forum_users(forum, nickname);
+--CREATE INDEX lower_both ON forum_users(forum, nickname);
 --CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
@@ -74,6 +61,7 @@ CREATE UNLOGGED TABLE threads (
                          votes int
 );
 
+CREATE INDEX ON threads(id, forum);
 
 CREATE OR REPLACE FUNCTION update_user_forum_thread() RETURNS TRIGGER AS
     $update_user_forum_thread$
@@ -92,11 +80,6 @@ CREATE TRIGGER table_update_threads
     FOR EACH ROW
 EXECUTE PROCEDURE update_user_forum_thread();
 
-
-CREATE INDEX forum_date ON threads(lower(forum), created_at);
-CREATE INDEX lower_thread_name_id ON threads(lower(slug));
---CREATE INDEX id_check ON threads(id);
---CLUSTER threads USING lower_thread_name_id;
 
 
 CREATE UNLOGGED TABLE posts (
