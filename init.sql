@@ -30,7 +30,7 @@ CREATE UNLOGGED TABLE users(
 -- Покрывающие индексы
 --Get User
 CREATE INDEX users_full ON users (nickname DESC, email, fullname, about);
-CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
+--CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
 CREATE INDEX index_name_get_user ON users (nickname, email);
 
@@ -55,8 +55,8 @@ CREATE UNLOGGED TABLE forum_users(
 );
 
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
-CREATE INDEX lower_forum ON forum_users USING hash(forum);
-CREATE INDEX lower_both ON forum_users(lower(forum), lower(nickname));
+--CREATE INDEX lower_forum ON forum_users USING hash(forum);
+CREATE INDEX lower_both ON forum_users(forum, nickname);
 --CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
