@@ -9,11 +9,6 @@ ALTER SYSTEM SET effective_io_concurrency = '200';
 ALTER SYSTEM SET seq_page_cost = '1.1';
 ALTER SYSTEM SET random_page_cost = '1.1';
 
-ALTER SYSTEM SET max_worker_processes = '4';
-ALTER SYSTEM SET max_parallel_workers_per_gather = '2';
-ALTER SYSTEM SET max_parallel_workers = '4';
-ALTER SYSTEM SET max_parallel_maintenance_workers = '2';
-
 
 /*CREATE DATABASE forum
     WITH
@@ -34,10 +29,12 @@ CREATE UNLOGGED TABLE users(
 );
 
 -- Покрывающие индексы
+--Get User
 CREATE INDEX check_lower_name ON users(lower(nickname));
-CREATE INDEX check_name ON users(nickname);
-CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname));
---CLUSTER users USING check_lower_name;
+
+--User Conflict
+CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname), lower(email));
+CLUSTER users USING check_lower_name;
 
 
 CREATE UNLOGGED TABLE forums (
@@ -113,14 +110,21 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-CREATE INDEX parent_thread_check ON posts (id, thread) WHERE parent = 0;
-CREATE INDEX id_thread ON posts(id, thread);
-CREATE INDEX posts_forum_slug ON posts(forum);
-CREATE INDEX post_author ON posts(author);
-CREATE INDEX thread ON posts(thread);
-CREATE INDEX thread_path_id ON posts(id, path);
-CREATE INDEX thread_path ON posts(thread, path);
-CREATE INDEX thread_path_null ON posts(id DESC, (path[1]) DESC);
+CREATE INDEX posts_id_thread ON posts(id, thread);
+
+CREATE INDEX posts_thread ON posts(thread);
+
+CREATE INDEX posts_thread_path ON posts(thread, path);
+
+
+CREATE INDEX parent_thread_check ON posts (id, thread, parent) WHERE parent = 0;
+
+CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
+
+CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
+
+CREATE INDEX thread_path_tree ON posts( path,  id);
+
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
 $update_path$
