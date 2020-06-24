@@ -35,6 +35,7 @@ CREATE INDEX users_full ON users (nickname, email, fullname, about);
 --CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
 CREATE INDEX index_name_get_user ON users (nickname, email);
+CREATE INDEX check_user ON users (nickname);
 
 
 
@@ -111,11 +112,12 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-CREATE UNIQUE INDEX ON posts(id, thread);
-CREATE UNIQUE INDEX ON posts(id, author);
-CREATE INDEX ON posts(thread, path DESC);
-CREATE INDEX posts_thread_id ON posts(id, thread);
-CREATE INDEX posts_id_thread_parent ON posts (thread, parent);
+
+CREATE INDEX parent_tree_index
+    ON posts ((path[1]), path DESC, id);
+
+CREATE INDEX parent_tree_index2
+    ON posts (id, (path[1]));
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
