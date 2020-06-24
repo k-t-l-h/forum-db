@@ -35,9 +35,9 @@ CREATE UNLOGGED TABLE users(
 
 -- Покрывающие индексы
 CREATE INDEX check_lower_name ON users(lower(nickname));
---CREATE INDEX index_name ON users(email, fullname, nickname, about, lower(nickname), lower(email));
---CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname));
-CLUSTER users USING check_lower_name;
+CREATE INDEX check_name ON users(nickname);
+CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname));
+--CLUSTER users USING check_lower_name;
 
 
 CREATE UNLOGGED TABLE forums (
@@ -48,7 +48,7 @@ CREATE UNLOGGED TABLE forums (
                         threads int
 );
 
---CREATE INDEX forum_slug ON forums(slug);
+CREATE INDEX forum_slug ON forums(slug);
 CREATE INDEX lower_slug ON forums(lower(slug));
 CLUSTER forums USING lower_slug;
 
@@ -96,6 +96,7 @@ EXECUTE PROCEDURE update_user_forum_thread();
 
 --CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
 CREATE INDEX lower_thread_name_id ON threads(lower(slug));
+CREATE INDEX forum_date ON threads(forum, created_at);
 CLUSTER threads USING lower_thread_name_id;
 
 
@@ -112,20 +113,14 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
---CREATE INDEX parent_thread_check ON posts (id, thread) WHERE parent = 0;
-
-
-CREATE INDEX inner_select_parent_tree ON posts ((path[1]), id);
-
-CREATE INDEX IF NOT EXISTS posts_thread_id_path_idx ON posts (thread, path);
-
-CREATE INDEX IF NOT EXISTS parent_tree ON posts (id, parent)  INCLUDE (thread) WHERE parent = 0;
-
-CREATE INDEX  posts_update_path ON posts (id, path, thread);
---CLUSTER posts USING posts_path_first;
-
-CREATE INDEX posts_update_path_check ON posts (thread, id);
-CREATE INDEX  posts_update_path ON posts (id, path);
+CREATE INDEX parent_thread_check ON posts (id, thread) WHERE parent = 0;
+CREATE INDEX id_thread ON posts(id, thread);
+CREATE INDEX posts_forum_slug ON posts(forum);
+CREATE INDEX post_author ON posts(author);
+CREATE INDEX thread ON posts(thread);
+CREATE INDEX thread_path_id ON posts(id, path);
+CREATE INDEX thread_path ON posts(thread, path);
+CREATE INDEX thread_path_null ON posts(id DESC, (path[1]) DESC);
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
 $update_path$
