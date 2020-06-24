@@ -7,6 +7,7 @@ import (
 
 var (
 	ForumSlug map[string]string
+	ThreadSlug = make(map[string]string)
 	FMux sync.Mutex
 )
 

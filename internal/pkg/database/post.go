@@ -142,41 +142,59 @@ func getTree(id int, since, limit, desc string) *pgx.Rows {
 
 	var rows *pgx.Rows
 
-	query := `SELECT id, author, post, created_at, forum, isedited, parent, thread
-				FROM posts
-				WHERE thread = $1`
+	query := ``
 
 	if limit == "" && since == "" {
 		if desc == "true" {
-			query += ` ORDER BY path, id DESC`
+			query = `SELECT id, author, post, created_at, forum, isedited, parent, thread
+				FROM posts
+				WHERE thread = $1 ORDER BY path, id DESC`
 		} else {
-			query += ` ORDER BY path, id ASC`
+			query = ` SELECT id, author, post, created_at, forum, isedited, parent, thread
+				FROM posts
+				WHERE thread = $1 ORDER BY path, id ASC`
 		}
 		rows, _ = dbPool.Query(query, id)
 	} else {
 		if limit != "" && since == "" {
 			if desc == "true" {
-				query += ` ORDER BY path DESC, id DESC LIMIT $2`
+				query += `SELECT id, author, post, created_at, forum, isedited, parent, thread
+				FROM posts
+				WHERE thread = $1 ORDER BY path DESC, id DESC LIMIT $2`
 			} else {
-				query += ` ORDER BY path, id ASC LIMIT $2`
+				query += `SELECT id, author, post, created_at, forum, isedited, parent, thread
+				FROM posts
+				WHERE thread = $1 ORDER BY path, id ASC LIMIT $2`
 			}
 			rows, _ = dbPool.Query(query, id, limit)
 		}
 
 		if limit != "" && since != "" {
 			if desc == "true" {
-				query += ` AND PATH < (SELECT path FROM posts WHERE id = $2)  ORDER BY path DESC, id DESC LIMIT $3`
+				query = `SELECT posts.id, posts.author, posts.post, 
+				posts.created_at, posts.forum, posts.isedited, posts.parent, posts.thread
+				FROM posts JOIN posts parent ON parent.id = $2 WHERE posts.path < parent.path AND  posts.thread = $1
+				ORDER BY posts.path DESC, posts.id DESC LIMIT $3`
 			} else {
-				query += ` AND PATH > (SELECT path FROM posts WHERE id = $2) ORDER BY path, id ASC LIMIT $3`
+				query = `SELECT posts.id, posts.author, posts.post, 
+				posts.created_at, posts.forum, posts.isedited, posts.parent, posts.thread
+				FROM posts JOIN posts parent ON parent.id = $2 WHERE posts.path > parent.path AND  posts.thread = $1
+				ORDER BY posts.path ASC, posts.id ASC LIMIT $3`
 			}
 			rows, _ = dbPool.Query(query, id, since, limit)
 		}
 
 		if limit == "" && since != "" {
 			if desc == "true" {
-				query += ` AND PATH < (SELECT path FROM posts WHERE id = $2) ORDER BY path, id DESC`
+				query = `SELECT posts.id, posts.author, posts.post, 
+				posts.created_at, posts.forum, posts.isedited, posts.parent, posts.thread
+				FROM posts JOIN posts parent ON parent.id = $2 WHERE posts.path < parent.path AND  posts.thread = $1
+				ORDER BY posts.path DESC, posts.id DESC`
 			} else {
-				query += ` AND PATH > (SELECT path FROM posts WHERE id = $2) ORDER BY path, id ASC`
+				query = `SELECT posts.id, posts.author, posts.post, 
+				posts.created_at, posts.forum, posts.isedited, posts.parent, posts.thread
+				FROM posts JOIN posts parent ON parent.id = $2 WHERE posts.path > parent.path AND  posts.thread = $1
+				ORDER BY posts.path ASC, posts.id ASC`
 			}
 			rows, _ = dbPool.Query(query, id, since)
 		}
