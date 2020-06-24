@@ -114,16 +114,17 @@ CREATE UNLOGGED TABLE posts (
 --CREATE INDEX posts_hash_forum on posts USING hash(forum);
 --CREATE INDEX posts_thread ON posts(thread);
 
-CREATE INDEX posts_id_thread ON posts(thread, id) WHERE  parent = 0;
+CREATE INDEX posts_id_thread ON posts(parent, thread, id) WHERE  parent = 0;
+CREATE INDEX thread_path_null ON posts((path[1]));
 --CREATE INDEX posts_id_thread_a ON posts(thread, id, path) WHERE id > 5000;
 --CREATE INDEX posts_id_thread_b ON posts(thread, id, path) WHERE id <= 5000;
-CREATE INDEX posts_thread_path ON posts(thread, path);
+CREATE INDEX posts_thread_path ON posts(thread, id);
 
 --CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
 --CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
-CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
+--CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
 
-CREATE INDEX thread_path_tree ON posts( path,  id);
+--CREATE INDEX thread_path_tree ON posts( path,  id);
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
