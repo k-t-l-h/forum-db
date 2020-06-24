@@ -114,7 +114,8 @@ CREATE UNLOGGED TABLE posts (
 --CREATE INDEX posts_hash_forum on posts USING hash(forum);
 --CREATE INDEX posts_thread ON posts(thread);
 
-CREATE INDEX posts_id_thread ON posts(parent, thread, id) WHERE  parent = 0;
+--CREATE INDEX posts_id_thread ON posts(parent, thread, id);
+CREATE INDEX posts_id_thread ON posts(thread) WHERE parent = 0;;
 CREATE INDEX thread_path_null ON posts((path[1]));
 --CREATE INDEX posts_id_thread_a ON posts(thread, id, path) WHERE id > 5000;
 --CREATE INDEX posts_id_thread_b ON posts(thread, id, path) WHERE id <= 5000;
