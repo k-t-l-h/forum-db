@@ -31,7 +31,7 @@ CREATE UNLOGGED TABLE users(
 
 -- Покрывающие индексы
 --Get User
-CREATE INDEX users_full ON users (nickname DESC, email, fullname, about);
+CREATE INDEX users_full ON users (nickname, email, fullname, about);
 --CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
 CREATE INDEX index_name_get_user ON users (nickname, email);
