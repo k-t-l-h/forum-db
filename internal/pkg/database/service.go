@@ -14,6 +14,7 @@ func Clear() error {
 		User:   0,
 	}
 
+	ForumClearSlug()
 	return nil
 }
 
