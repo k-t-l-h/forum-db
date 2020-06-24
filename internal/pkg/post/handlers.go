@@ -34,7 +34,9 @@ func PostDetails(writer http.ResponseWriter, request *http.Request) {
 	case database.OK:
 		response.Respond(writer, http.StatusOK, res)
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Thread not in forum"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 }
 
@@ -56,7 +58,9 @@ func PostUpdateDetails(writer http.ResponseWriter, request *http.Request) {
 	case database.OK:
 		response.Respond(writer, http.StatusOK, up)
 	default:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Something went wrong"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 
 	}
 

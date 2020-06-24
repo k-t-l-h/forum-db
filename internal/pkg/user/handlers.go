@@ -27,7 +27,9 @@ func Create(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		response.Respond(writer, http.StatusCreated, user[0])
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusCreated)
+		easyjson.MarshalToHTTPResponseWriter(user[0], writer)
 	case database.ForumConflict:
 		response.Respond(writer, http.StatusConflict, user)
 
@@ -50,9 +52,13 @@ func Update(writer http.ResponseWriter, request *http.Request) {
 	case database.OK:
 		response.Respond(writer, http.StatusOK, u)
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "User not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	case database.ForumConflict:
-		response.Respond(writer, http.StatusConflict, models.Error{Message: "User cannot be updated"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusConflict)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 }
 
@@ -68,8 +74,12 @@ func Details(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		response.Respond(writer, http.StatusOK, u)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		easyjson.MarshalToHTTPResponseWriter(u, writer)
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "User not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 }

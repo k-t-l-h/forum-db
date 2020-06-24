@@ -26,9 +26,14 @@ func Create(writer http.ResponseWriter, request *http.Request) {
 	case database.OK:
 		response.Respond(writer, http.StatusCreated, posts)
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Forum not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
+
 	case database.ForumConflict:
-		response.Respond(writer, http.StatusConflict, models.Error{Message: "Thread not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusConflict)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 }
 
@@ -43,11 +48,13 @@ func Update(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		//успешно
-		response.Respond(writer, http.StatusOK, tr)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		easyjson.MarshalToHTTPResponseWriter(tr, writer)
 	case database.NotFound:
-		//нет ветки
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Thread not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 
 }
@@ -64,11 +71,13 @@ func UpdateID(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		//успешно
-		response.Respond(writer, http.StatusOK, tr)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		easyjson.MarshalToHTTPResponseWriter(tr, writer)
 	case database.NotFound:
-		//нет ветки
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Thread not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 	}
 
 }
@@ -83,9 +92,13 @@ func Vote(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		response.Respond(writer, http.StatusOK, thread)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		easyjson.MarshalToHTTPResponseWriter(thread, writer)
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Thread not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 
 	}
 }
@@ -103,9 +116,14 @@ func VoteID(writer http.ResponseWriter, request *http.Request) {
 
 	switch status {
 	case database.OK:
-		response.Respond(writer, http.StatusOK, thread)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		easyjson.MarshalToHTTPResponseWriter(thread, writer)
+
 	case database.NotFound:
-		response.Respond(writer, http.StatusNotFound, models.Error{Message: "Thread not found"})
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNotFound)
+		easyjson.MarshalToHTTPResponseWriter(models.Error{Message: "User not found"}, writer)
 
 	}
 }
