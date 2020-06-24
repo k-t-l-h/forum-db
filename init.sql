@@ -29,7 +29,7 @@ CREATE UNLOGGED TABLE users(
 
 -- Покрывающие индексы
 --Get User
-CREATE INDEX users_full ON users (nickname, email, fullname, about);
+CREATE INDEX users_full ON users (nickname DESC, email, fullname, about);
 CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
 CREATE INDEX index_name_get_user ON users (nickname, email);
@@ -44,13 +44,13 @@ CREATE UNLOGGED TABLE forums (
                         threads int
 );
 
-CREATE UNIQUE INDEX lower_slug ON forums(lower(slug));
-CREATE UNIQUE INDEX lower_slug_title ON forums(lower(slug), title);
+--CREATE UNIQUE INDEX lower_slug ON forums(lower(slug));
+CREATE UNIQUE INDEX lower_slug_title ON forums(slug, title);
 
 CREATE UNLOGGED TABLE forum_users(
                       nickname citext references users(nickname),
-                      forum citext references forums(slug) --,
-                     -- CONSTRAINT fk UNIQUE(nickname, forum)
+                      forum citext references forums(slug),
+                     CONSTRAINT fk UNIQUE(nickname, forum)
 
 );
 
@@ -77,7 +77,7 @@ CREATE OR REPLACE FUNCTION update_user_forum_thread() RETURNS TRIGGER AS
 BEGIN
     INSERT INTO forum_users(
         nickname,
-        forum) VALUES (new.author, new.forum);
+        forum) VALUES (new.author, new.forum) ON CONFLICT DO NOTHING;
     UPDATE forums SET threads = threads + 1 WHERE lower(slug) = lower(new.forum);
     RETURN new;
 END
@@ -163,7 +163,7 @@ BEGIN
     UPDATE forums SET posts = posts + 1 WHERE lower(slug) = lower(new.forum);
     INSERT INTO forum_users(
         nickname,
-        forum) VALUES (new.author, new.forum);
+        forum) VALUES (new.author, new.forum) ON CONFLICT DO NOTHING;
     RETURN new;
 END
 $update_user_forum$ LANGUAGE plpgsql;

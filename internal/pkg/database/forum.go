@@ -17,6 +17,7 @@ func CreateForum(forum models.Forum) ([]models.Forum, int) {
 	VALUES ($1, $2, $3, $4, $5) 
 	RETURNING slug;`
 
+
 	user, errs := CheckUser(models.User{NickName: forum.User})
 	if errs != OK {
 		return []models.Forum{}, UserNotFound
@@ -55,7 +56,7 @@ func GetForumOnConflict(f models.Forum) ([]models.Forum, int) {
 	forums := []models.Forum{}
 	query := `SELECT title, author, slug, posts, threads
 				FROM forums 
-				WHERE lower(slug) = lower($1) or title = $2;`
+				WHERE slug = $1 or title = $2;`
 
 	row, _ := dbPool.Query(query, f.Slug, f.Title)
 	defer row.Close()
@@ -123,7 +124,7 @@ func CreateSlug(thread models.Thread) ([]models.Thread, int) {
 func GetForumBySlag(forum models.Forum) (models.Forum, int) {
 	query := `SELECT title, author, slug, posts, threads
 				FROM forums 
-				WHERE lower(slug) = lower($1);`
+				WHERE slug = $1;`
 
 	row := dbPool.QueryRow(query, forum.Slug)
 
@@ -138,7 +139,7 @@ func GetForumBySlag(forum models.Forum) (models.Forum, int) {
 
 func ForumCheck(forum models.Forum) (models.Forum, int) {
 	query := `SELECT slug FROM forums 
-				WHERE lower(slug) = lower($1);`
+				WHERE slug = $1;`
 
 	row := dbPool.QueryRow(query, forum.Slug)
 
@@ -170,19 +171,17 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
 		if desc == "true" {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname IN (
-		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
-		ORDER BY lower(nickname) DESC`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		ORDER BY lower(forum_users.nickname) DESC`
 		} else {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE 
-		lower(forum) = lower($1) ) ORDER BY lower(nickname) ASC`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		ORDER BY lower(forum_users.nickname)  ASC`
 		}
 
 		row, err = dbPool.Query(query, forum.Slug)
@@ -192,20 +191,17 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
 		if desc == "true" {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
-		ORDER BY lower(nickname) DESC LIMIT $2`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		ORDER BY lower(forum_users.nickname)  DESC LIMIT $2`
 		} else {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE 
-		lower(forum) = lower($1) )
-		ORDER BY lower(nickname) ASC LIMIT $2`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		ORDER BY lower(forum_users.nickname)  ASC LIMIT $2`
 		}
 
 		row, err = dbPool.Query(query, forum.Slug, limit)
@@ -215,22 +211,19 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
 		if desc == "true" {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
-		AND lower(nickname) < lower($2)
-		ORDER BY lower(nickname) DESC `
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		AND lower(forum_users.nickname) < lower($2)
+		ORDER BY lower(forum_users.nickname)  DESC  `
 		} else {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                     users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE 
-		lower(forum) = lower($1) ) 
-		AND lower(nickname) > lower($2)
-		ORDER BY lower(nickname) ASC `
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		AND lower(forum_users.nickname) > lower($2)
+		ORDER BY lower(forum_users.nickname)  ASC`
 		}
 
 		row, err = dbPool.Query(query, forum.Slug, since)
@@ -240,32 +233,30 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
 		if desc == "true" {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
-		AND lower(nickname) < lower($2)
-		ORDER BY lower(nickname) DESC LIMIT $3`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		AND lower(forum_users.nickname) < lower($2)
+		ORDER BY lower(forum_users.nickname)  DESC  LIMIT $3`
 		} else {
 			query = `SELECT email,
                       fullname,
-                      nickname,
+                      users.nickname,
                       about
-		from users WHERE nickname = ANY (
-		SELECT DISTINCT nickname FROM forum_users WHERE 
-		lower(forum) = lower($1) ) 
-		AND lower(nickname) > lower($2)
-		ORDER BY lower(nickname) ASC LIMIT $3`
+		FROM users JOIN forum_users ON users.nickname = forum_users.nickname WHERE forum = $1
+		AND lower(forum_users.nickname) > lower($2)
+		ORDER BY lower(forum_users.nickname) ASC LIMIT $3`
 		}
 
 		row, err = dbPool.Query(query, forum.Slug, since, limit)
+		log.Print(err)
 	}
 
 	defer row.Close()
 
 	for row.Next() {
 		a := models.User{}
-		row.Scan(&a.Email, &a.FullName, &a.NickName, &a.About)
+		log.Print(row.Scan(&a.Email, &a.FullName, &a.NickName, &a.About))
 		us = append(us, a)
 	}
 	return us, OK
