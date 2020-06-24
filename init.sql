@@ -20,19 +20,20 @@ ALTER SYSTEM SET seq_page_cost = '1.1';
  */
 
 CREATE UNLOGGED TABLE users(
-                      id serial PRIMARY KEY,
+                     -- id serial PRIMARY KEY,
                       email citext UNIQUE NOT NULL,
                       fullname citext NOT NULL,
-                      nickname citext UNIQUE NOT NULL ,
-                      about text
+                      nickname citext PRIMARY KEY,
+                      about text NOT NULL
 );
 
 -- Покрывающие индексы
 --Get User
+CREATE INDEX users_full ON users (nickname, email, fullname, about);
 CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
-CREATE INDEX index_name_get_user ON users (lower(nickname), lower(email));
-CLUSTER users USING check_lower_name;
+CREATE INDEX index_name_get_user ON users (nickname, email);
+
 
 
 CREATE UNLOGGED TABLE forums (

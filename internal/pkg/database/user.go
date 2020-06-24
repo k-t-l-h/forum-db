@@ -12,10 +12,9 @@ func CreateUser(user models.User) ([]models.User, int) {
 	results := []models.User{}
 	result := user
 	query := `INSERT INTO users (email, fullname, nickname, about) 
-			VALUES ($1, $2, $3, $4) RETURNING nickname`
-	row := dbPool.QueryRow(query, user.Email, user.FullName, user.NickName, user.About)
+			VALUES ($1, $2, $3, $4)`
 
-	err := row.Scan(&result.NickName)
+	_, err := dbPool.Exec(query, user.Email, user.FullName, user.NickName, user.About)
 	if err != nil {
 		if pqError, ok := err.(pgx.PgError); ok {
 			switch pqError.Code {
@@ -38,7 +37,7 @@ func GetUserOnConflict(user models.User) ([]models.User, int) {
 	results := []models.User{}
 	query := `SELECT email, fullname, nickname, about
 	FROM users
-	WHERE lower(email) = lower($1) or  lower(nickname) =  lower($2)`
+	WHERE email = $1 or  nickname =  $2`
 
 	rows, _ := dbPool.Query(query, user.Email, user.NickName)
 	defer rows.Close()
@@ -56,7 +55,7 @@ func GetUser(user models.User) (models.User, int) {
 	result := models.User{}
 	query := `SELECT email, fullname, nickname, about
 	FROM users
-	WHERE  lower(nickname) =  lower($1)`
+	WHERE  nickname =  $1`
 
 	rows := dbPool.QueryRow(query, user.NickName)
 
