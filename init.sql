@@ -110,12 +110,12 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-CREATE UNIQUE INDEX posts_id_thread ON posts(thread, id);
+CREATE INDEX posts_id_thread ON posts(thread, id);
 
 CREATE INDEX posts_thread ON posts(thread);
 
-CREATE UNIQUE INDEX posts_thread_path ON posts(thread, path, id);
-CREATE UNIQUE INDEX posts_thread_path ON posts(thread, path);
+CREATE INDEX posts_thread_path ON posts(thread, path, id);
+CREATE INDEX posts_thread_path ON posts(thread, path);
 
 CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
 
