@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mailru/easyjson v0.7.1
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/qiangxue/fasthttp-routing v0.0.0-20160225050629-6ccdc2a18d87
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
 	github.com/valyala/fasthttp v1.14.0
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56 // indirect

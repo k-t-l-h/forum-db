@@ -7,12 +7,17 @@ import (
 	"forum-db/internal/pkg/service"
 	"forum-db/internal/pkg/thread"
 	"forum-db/internal/pkg/user"
-	"github.com/gorilla/mux"
+	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"log"
-	"net/http"
 )
+
+
+
+type fastService struct {
+	Port   string
+	Router *routing.Router
+}
 
 func main() {
 
@@ -21,41 +26,39 @@ func main() {
 	}
 	defer database.Close()
 
-	muxRouter := mux.NewRouter()
+	router := routing.New()
+	router.To("POST", "/api/forum/create", forum.FCreateForum)
+	router.To("POST", "/api/forum/<slug>/create", forum.FCreateSlug)
+	router.To("GET", "/api/forum/<slug>/details", forum.FSlugDetails)
+	router.To("GET", "/api/forum/<slug>/threads", forum.FSlugThreads)
+	router.To("GET", "/api/forum/<slug>/users", forum.FSlugUsers)
 
-	muxRouter.HandleFunc("/api/forum/create", forum.CreateForum).Methods("POST")
-	muxRouter.HandleFunc("/api/forum/{slug}/create", forum.CreateSlug).Methods("POST")
-	muxRouter.HandleFunc("/api/forum/{slug}/details", forum.SlugDetails).Methods("GET")
-	muxRouter.HandleFunc("/api/forum/{slug}/threads", forum.SlugThreads).Methods("GET")
-	muxRouter.HandleFunc("/api/forum/{slug}/users", forum.SlugUsers).Methods("GET")
+	router.To("POST", "/api/post/<id>/details", post.FPostUpdateDetails)
+	router.To("GET", "/api/post/<id>/details", post.FPostDetails)
 
-	muxRouter.HandleFunc("/api/post/{id}/details", post.PostDetails).Methods("GET")
-	muxRouter.HandleFunc("/api/post/{id}/details", post.PostUpdateDetails).Methods("POST")
 
-	muxRouter.HandleFunc("/api/service/status", service.Status).Methods("GET")
-	muxRouter.HandleFunc("/api/service/clear", service.Clear).Methods("POST")
+	router.To("POST","/api/service/status", service.FStatus)
+	router.To("GET", "/api/service/clear", service.FClear)
 
-	muxRouter.HandleFunc("/api/thread/{id:[0-9]+}/create", thread.CreateID).Methods("POST")
-	muxRouter.HandleFunc("/api/thread/{slug_or_id}/create", thread.Create).Methods("POST")
 
-	muxRouter.HandleFunc("/api/thread/{id:[0-9]+}/details", thread.UpdateID).Methods("POST")
-	muxRouter.HandleFunc("/api/thread/{slug_or_id}/details", thread.Update).Methods("POST")
+	router.To("POST", "/api/thread/<slug_or_id>/create", thread.FCreate)
+	router.To("POST", "/api/thread/<slug_or_id>/details", thread.FUpdate)
+	router.To("POST", "/api/thread/<slug_or_id>/vote", thread.FVote)
 
-	muxRouter.HandleFunc("/api/thread/{id:[0-9]+}/vote", thread.VoteID).Methods("POST")
-	muxRouter.HandleFunc("/api/thread/{slug_or_id}/vote", thread.Vote).Methods("POST")
+	router.To("GET", "/api/thread/<slug_or_id>/details", thread.FDetails)
+	router.To("GET", "/api/thread/<slug_or_id>/posts", thread.FPosts)
 
-	muxRouter.HandleFunc("/api/thread/{id:[0-9]+}/details", thread.DetailsID).Methods("GET")
-	muxRouter.HandleFunc("/api/thread/{slug_or_id}/details", thread.Details).Methods("GET")
+	router.To("POST", "/api/user/<nickname>/create", user.FCreate)
+	router.To("POST", "/api/user/<nickname>/profile", user.FUpdate)
+	router.To("GET", "/api/user/<nickname>/profile", user.FDetails)
 
-	muxRouter.HandleFunc("/api/thread/{id:[0-9]+}/posts", thread.PostsID).Methods("GET")
-	muxRouter.HandleFunc("/api/thread/{slug_or_id}/posts", thread.Posts).Methods("GET")
+	s := fastService{
+		Port:   ":5000",
+		Router: router,
+	}
+	log.Printf("Server running at %v\n", s.Port)
+	fasthttp.ListenAndServe(s.Port, s.Router.HandleRequest)
 
-	muxRouter.HandleFunc("/api/user/{nickname}/create", user.Create).Methods("POST")
-	muxRouter.HandleFunc("/api/user/{nickname}/profile", user.Update).Methods("POST")
-	muxRouter.HandleFunc("/api/user/{nickname}/profile", user.Details).Methods("GET")
 
-	muxRouter.HandleFunc("/api", service.Index).Methods("GET")
-	http.Handle("/", muxRouter)
-	log.Print(fasthttp.ListenAndServe(":5000", fasthttpadaptor.NewFastHTTPHandler(muxRouter)))
 
 }
