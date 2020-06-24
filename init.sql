@@ -91,7 +91,7 @@ EXECUTE PROCEDURE update_user_forum_thread();
 
 
 CREATE INDEX forum_date ON threads(lower(forum), created_at);
---CREATE INDEX lower_thread_name_id ON threads(lower(slug));
+CREATE INDEX lower_thread_name_id ON threads(lower(slug));
 CREATE INDEX id_check ON threads(id);
 --CLUSTER threads USING lower_thread_name_id;
 
@@ -118,7 +118,7 @@ CREATE UNLOGGED TABLE posts (
 --CREATE INDEX thread_path_null ON posts((path[1]));
 --CREATE INDEX posts_id_thread_a ON posts(thread, id, path) WHERE id > 5000;
 --CREATE INDEX posts_id_thread_b ON posts(thread, id, path) WHERE id <= 5000;
---CREATE INDEX posts_thread_path ON posts(thread, id);
+CREATE INDEX posts_thread_path ON posts(thread, id);
 
 --CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
 --CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
