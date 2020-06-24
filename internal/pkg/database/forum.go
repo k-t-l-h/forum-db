@@ -44,6 +44,7 @@ func CreateForum(forum models.Forum) ([]models.Forum, int) {
 			}
 		}
 	}
+
 	info.Forum = info.Forum + 1
 
 	results = append(results, res)
@@ -180,7 +181,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE 
 		lower(forum) = lower($1) ) ORDER BY lower(nickname) ASC`
 		}
@@ -194,7 +195,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
 		ORDER BY lower(nickname) DESC LIMIT $2`
 		} else {
@@ -202,7 +203,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE 
 		lower(forum) = lower($1) )
 		ORDER BY lower(nickname) ASC LIMIT $2`
@@ -217,7 +218,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
 		AND lower(nickname) < lower($2)
 		ORDER BY lower(nickname) DESC `
@@ -226,7 +227,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE 
 		lower(forum) = lower($1) ) 
 		AND lower(nickname) > lower($2)
@@ -242,7 +243,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE lower(forum) = lower($1) )
 		AND lower(nickname) < lower($2)
 		ORDER BY lower(nickname) DESC LIMIT $3`
@@ -251,7 +252,7 @@ func GetForumUsers(forum models.Forum, limit, since, desc string) ([]models.User
                       fullname,
                       nickname,
                       about
-		from users WHERE nickname IN (
+		from users WHERE nickname = ANY (
 		SELECT DISTINCT nickname FROM forum_users WHERE 
 		lower(forum) = lower($1) ) 
 		AND lower(nickname) > lower($2)

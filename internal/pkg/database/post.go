@@ -210,7 +210,7 @@ func getParentTree(id int, since, limit, desc string) *pgx.Rows {
 	}
 
 	query := fmt.Sprintf(
-		`SELECT id, author, post, created_at, forum, isedited, parent, thread FROM posts WHERE path[1] IN (%s) `, parents)
+		`SELECT id, author, post, created_at, forum, isedited, parent, thread FROM posts WHERE path[1] = ANY (%s) `, parents)
 
 	if desc == "true" {
 		query += ` ORDER BY path[1] DESC, path,  id `

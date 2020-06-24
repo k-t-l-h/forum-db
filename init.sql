@@ -31,10 +31,9 @@ CREATE UNLOGGED TABLE users(
 -- Покрывающие индексы
 --Get User
 CREATE INDEX check_lower_name ON users(lower(nickname));
-
 --User Conflict
-CREATE INDEX index_name_get_user ON users(email, fullname, nickname, about, lower(nickname), lower(email));
-CLUSTER users USING check_lower_name;
+CREATE INDEX index_name_get_user ON users(lower(nickname), lower(email));
+--CLUSTER users USING check_lower_name;
 
 
 CREATE UNLOGGED TABLE forums (
@@ -45,9 +44,8 @@ CREATE UNLOGGED TABLE forums (
                         threads int
 );
 
-CREATE INDEX forum_slug ON forums(slug);
 CREATE INDEX lower_slug ON forums(lower(slug));
-CLUSTER forums USING lower_slug;
+CREATE INDEX lower_slug_title ON forums(lower(slug), title);
 
 CREATE UNLOGGED TABLE forum_users(
                       nickname citext references users(nickname),
@@ -58,6 +56,8 @@ CREATE UNLOGGED TABLE forum_users(
 
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
 CREATE INDEX lower_forum ON forum_users(lower(forum));
+CREATE INDEX lower_nick ON forum_users(lower(nickname));
+CREATE INDEX lower_both ON forum_users(lower(forum), lower(nickname));
 --CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
@@ -91,11 +91,10 @@ CREATE TRIGGER table_update_threads
 EXECUTE PROCEDURE update_user_forum_thread();
 
 
---CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
-CREATE INDEX id_check ON threads(id);
+CREATE INDEX forum_date ON threads(lower(forum), created_at);
 CREATE INDEX lower_thread_name_id ON threads(lower(slug));
-CREATE INDEX forum_date ON threads(forum, created_at);
-CLUSTER threads USING lower_thread_name_id;
+CREATE INDEX id_check ON threads(id);
+--CLUSTER threads USING lower_thread_name_id;
 
 
 CREATE UNLOGGED TABLE posts (
@@ -111,20 +110,21 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-CREATE INDEX posts_id_thread ON posts(id, thread);
+CREATE INDEX posts_id_thread ON posts(thread, id);
 
 CREATE INDEX posts_thread ON posts(thread);
 
+CREATE INDEX posts_thread_path ON posts(thread, path, id);
 CREATE INDEX posts_thread_path ON posts(thread, path);
 
+CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
 
-CREATE INDEX parent_thread_check ON posts (id, thread, parent) WHERE parent = 0;
 
 CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
 
 CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
 
-CREATE INDEX thread_path_tree ON posts( path,  id);
+--CREATE INDEX thread_path_tree ON posts( path,  id);
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
