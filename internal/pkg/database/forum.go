@@ -11,7 +11,6 @@ var slugs map[string]string
 //DONE
 ///forum/create
 
-
 func CreateForum(forum models.Forum) ([]models.Forum, int) {
 
 	query := ` INSERT INTO forums (title, author, slug, posts, threads) 

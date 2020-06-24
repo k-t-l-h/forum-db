@@ -3,6 +3,7 @@ module forum-db
 go 1.13
 
 require (
+	github.com/buaazp/fasthttprouter v0.1.1 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.4
