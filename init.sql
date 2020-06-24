@@ -1,14 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
 ALTER SYSTEM SET max_connections = '200';
-ALTER SYSTEM SET shared_buffers = '256B';
+ALTER SYSTEM SET shared_buffers = '512B';
 ALTER SYSTEM SET effective_cache_size = '768MB';
 ALTER SYSTEM SET checkpoint_completion_target = '0.9';
 ALTER SYSTEM SET random_page_cost = '1.1';
 ALTER SYSTEM SET effective_io_concurrency = '200';
 ALTER SYSTEM SET seq_page_cost = '1.1';
 ALTER SYSTEM SET random_page_cost = '1.1';
-
+ALTER SYSTEM SET wal_buffers = '6912kB';
+ALTER SYSTEM SET default_statistics_target = '100';
+ALTER SYSTEM SET seq_page_cost = '0.1';
+ALTER SYSTEM SET random_page_cost = '0.1';
 
 /*CREATE DATABASE forum
     WITH
@@ -30,10 +33,10 @@ CREATE UNLOGGED TABLE users(
 
 -- Покрывающие индексы
 --Get User
-CREATE UNIQUE INDEX check_lower_name ON users USING hash(lower(nickname));
+CREATE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
 CREATE INDEX index_name_get_user ON users (lower(nickname), lower(email));
---CLUSTER users USING check_lower_name;
+CLUSTER users USING check_lower_name;
 
 
 CREATE UNLOGGED TABLE forums (
@@ -55,8 +58,7 @@ CREATE UNLOGGED TABLE forum_users(
 );
 
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
-CREATE INDEX lower_forum ON forum_users(lower(forum));
-CREATE INDEX lower_nick ON forum_users(lower(nickname));
+CREATE INDEX lower_forum ON forum_users USING hash(forum);
 CREATE INDEX lower_both ON forum_users(lower(forum), lower(nickname));
 --CLUSTER forum_users USING lower_forum;
 
@@ -92,7 +94,7 @@ EXECUTE PROCEDURE update_user_forum_thread();
 
 
 CREATE INDEX forum_date ON threads(lower(forum), created_at);
-CREATE INDEX lower_thread_name_id ON threads(lower(slug));
+--CREATE INDEX lower_thread_name_id ON threads(lower(slug));
 CREATE INDEX id_check ON threads(id);
 --CLUSTER threads USING lower_thread_name_id;
 
@@ -110,21 +112,21 @@ CREATE UNLOGGED TABLE posts (
                        path  INTEGER[]
 );
 
-CREATE INDEX posts_id_thread ON posts(thread, id);
 
-CREATE INDEX posts_thread ON posts(thread);
+CREATE INDEX posts_hash_forum on posts USING hash(forum);
+--CREATE INDEX posts_thread ON posts(thread);
 
-CREATE INDEX posts_thread_path ON posts(thread, path, id);
+CREATE INDEX posts_id_thread ON posts(thread, id) WHERE  parent = 0;
+CREATE INDEX posts_id_thread_a ON posts(thread, id, path) WHERE id > 5000;
+CREATE INDEX posts_id_thread_b ON posts(thread, id, path) WHERE id <= 5000;
+
 CREATE INDEX posts_thread_path ON posts(thread, path);
 
-CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
+--CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
+CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
+CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
 
-
-CREATE UNIQUE INDEX posts_id_thread_parent ON posts (id, thread, parent);
-
-CREATE UNIQUE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
-
---CREATE INDEX thread_path_tree ON posts( path,  id);
+CREATE INDEX thread_path_tree ON posts( path,  id);
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
