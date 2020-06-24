@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
+ALTER system SET log_min_duration_statement = 100;
+
 ALTER SYSTEM SET max_connections = '200';
 ALTER SYSTEM SET shared_buffers = '512B';
 ALTER SYSTEM SET effective_cache_size = '768MB';
@@ -121,7 +123,7 @@ CREATE UNLOGGED TABLE posts (
 CREATE INDEX posts_thread_path ON posts(thread, id);
 
 --CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
---CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
+CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
 --CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
 
 --CREATE INDEX thread_path_tree ON posts( path,  id);
