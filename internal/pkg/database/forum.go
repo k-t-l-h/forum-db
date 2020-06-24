@@ -275,13 +275,13 @@ func GetForumThreads(t models.Thread, limit, since, desc string) ([]models.Threa
 		if desc == "" || desc == "false" {
 			query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1)
+						WHERE forum = $1
 						ORDER BY created_at ASC`
 
 		} else {
 			query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1)
+						WHERE forum = $1
 						ORDER BY created_at DESC`
 		}
 		row, err = dbPool.Query(query, t.Forum)
@@ -291,13 +291,13 @@ func GetForumThreads(t models.Thread, limit, since, desc string) ([]models.Threa
 			if desc == "" || desc == "false" {
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) 
+						WHERE forum = $1
 						ORDER BY created_at ASC  LIMIT $2`
 
 			} else {
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) 
+						WHERE forum = $1
 						ORDER BY created_at DESC  LIMIT $2`
 			}
 
@@ -308,12 +308,12 @@ func GetForumThreads(t models.Thread, limit, since, desc string) ([]models.Threa
 			if desc == "" || desc == "false" {
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) AND created_at >= $2
+						WHERE forum = $1 AND created_at >= $2
 						ORDER BY created_at ASC `
 			} else {
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) AND created_at <= $2
+						WHERE forum = $1 AND created_at <= $2
 						ORDER BY created_at DESC `
 			}
 
@@ -326,12 +326,12 @@ func GetForumThreads(t models.Thread, limit, since, desc string) ([]models.Threa
 
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) AND created_at >= $2
+						WHERE forum = $1 AND created_at >= $2
 						ORDER BY created_at ASC LIMIT $3`
 			} else {
 				query = `SELECT id, slug, author, created_at, forum, title, message, votes
 						FROM threads
-						WHERE lower(forum) = lower($1) AND created_at <= $2
+						WHERE forum = $1 AND created_at <= $2
 						ORDER BY created_at DESC LIMIT $3`
 			}
 			row, err = dbPool.Query(query, t.Forum, since, limit)

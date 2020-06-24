@@ -122,9 +122,9 @@ CREATE UNLOGGED TABLE posts (
 
 --CREATE INDEX parent_thread_check ON posts (thread, parent) WHERE parent = 0;
 --CREATE INDEX posts_id_thread_parent ON posts (id, thread, parent);
-CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
+--CREATE INDEX thread_path_null ON posts((path[1]) DESC, path,  id);
 
-CREATE INDEX thread_path_tree ON posts( path,  id);
+--CREATE INDEX thread_path_tree ON posts( path,  id);
 
 
 CREATE OR REPLACE FUNCTION update_path() RETURNS TRIGGER AS
