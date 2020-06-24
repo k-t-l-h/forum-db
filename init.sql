@@ -57,7 +57,7 @@ CREATE UNLOGGED TABLE forum_users(
 --CREATE INDEX lower_forum_users ON forum_users(nickname, lower(forum));
 CREATE INDEX lower_forum ON forum_users(lower(forum));
 CREATE INDEX lower_nick ON forum_users(lower(nickname));
-CREATE UNIQUE INDEX lower_both ON forum_users(lower(forum), lower(nickname));
+CREATE INDEX lower_both ON forum_users(lower(forum), lower(nickname));
 --CLUSTER forum_users USING lower_forum;
 
 CREATE UNLOGGED TABLE threads (
