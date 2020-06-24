@@ -30,9 +30,9 @@ CREATE UNLOGGED TABLE users(
 
 -- Покрывающие индексы
 --Get User
-CREATE UNIQUE INDEX check_lower_name ON users(lower(nickname));
+CREATE UNIQUE INDEX check_lower_name ON users USING hash(lower(nickname));
 --User Conflict
-CREATE INDEX index_name_get_user ON users(lower(nickname), lower(email));
+CREATE INDEX index_name_get_user ON users (lower(nickname), lower(email));
 --CLUSTER users USING check_lower_name;
 
 
