@@ -8,9 +8,7 @@ ALTER SYSTEM SET random_page_cost = '1.1';
 ALTER SYSTEM SET effective_io_concurrency = '200';
 ALTER SYSTEM SET wal_buffers = '6912kB';
 ALTER SYSTEM SET default_statistics_target = '100';
-ALTER SYSTEM SET seq_page_cost = '0.1';
-ALTER SYSTEM SET random_page_cost = '0.1';
-
+ALTER SYSTEM SET seq_page_cost = '1.1';
 /*CREATE DATABASE forum
     WITH
     OWNER = postgres
