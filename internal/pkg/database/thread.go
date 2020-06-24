@@ -18,7 +18,7 @@ func CreateThreadPost(check string, posts []models.Post) ([]models.Post, int) {
 
 	query := `SELECT id, forum
 					FROM threads
-					WHERE lower(slug) = lower($1)`
+					WHERE slug = $1`
 
 	row := dbPool.QueryRow(query, check)
 	err := row.Scan(&thread.Id, &thread.Forum)
