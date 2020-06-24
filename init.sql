@@ -92,6 +92,7 @@ EXECUTE PROCEDURE update_user_forum_thread();
 
 
 --CREATE INDEX threads_all ON threads(id, author, message, title, created_at, forum, slug, votes);
+CREATE INDEX id_check ON threads(id);
 CREATE INDEX lower_thread_name_id ON threads(lower(slug));
 CREATE INDEX forum_date ON threads(forum, created_at);
 CLUSTER threads USING lower_thread_name_id;
