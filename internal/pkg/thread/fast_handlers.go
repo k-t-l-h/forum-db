@@ -31,16 +31,16 @@ func FCreate(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(posts)
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(models.Error{Message: "StatusConflict"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -64,11 +64,11 @@ func FUpdate(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(tr)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 
@@ -96,11 +96,11 @@ func FVote(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(thread)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	}
 	return nil
@@ -152,11 +152,11 @@ func FPosts(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(Ps)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 
 	return nil
@@ -182,11 +182,11 @@ func FDetails(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(t)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 
 	return nil

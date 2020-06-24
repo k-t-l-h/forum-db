@@ -19,17 +19,17 @@ func FCreateForum(ctx *routing.Context) error {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusCreated)
 		data, _ := json.Marshal(forums[0])
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	case database.UserNotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(forums[0])
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	}
 	return nil
@@ -49,18 +49,18 @@ func FCreateSlug(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusCreated)
 		data, _ := json.Marshal(th[0])
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 
 	case database.UserNotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(th[0])
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -76,13 +76,13 @@ func FSlugDetails(ctx *routing.Context) error {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(f)
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -120,11 +120,11 @@ func FSlugThreads(ctx *routing.Context)error {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(t)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -161,11 +161,11 @@ func FSlugUsers(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(u)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 

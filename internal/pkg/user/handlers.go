@@ -30,6 +30,7 @@ func Create(writer http.ResponseWriter, request *http.Request) {
 		response.Respond(writer, http.StatusCreated, user[0])
 	case database.ForumConflict:
 		response.Respond(writer, http.StatusConflict, user)
+
 	}
 
 }

@@ -19,7 +19,7 @@ func FStatus(ctx *routing.Context) error{
 	info := database.Info()
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	data, _ := json.Marshal(info)
-	ctx.Write(data)
+	ctx.SetBody(data)
 	return nil
 }
 

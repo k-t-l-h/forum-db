@@ -36,12 +36,12 @@ func FPostDetails(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(res)
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "Thread not in forum"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -65,11 +65,11 @@ func FPostUpdateDetails(ctx *routing.Context) error {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(up)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	default:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "Something went wrong"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 
 	}
 

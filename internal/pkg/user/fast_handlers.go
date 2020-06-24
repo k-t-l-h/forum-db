@@ -6,6 +6,7 @@ import (
 	"forum-db/internal/pkg/database"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
+	"log"
 )
 
 func FCreate(ctx *routing.Context) error{
@@ -18,16 +19,22 @@ func FCreate(ctx *routing.Context) error{
 
 	user, status := database.CreateUser(u)
 
+
+
 	switch status {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusCreated)
-		data, _ := json.Marshal(user[0])
-		ctx.Write(data)
+		m := models.User{user[0].About, user[0].Email, user[0].FullName, user[0].NickName}
+		data, err := json.Marshal(m)
+
+		ctx.SetBody(data)
+		log.Print(err)
 
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(user)
-		ctx.Write(data)
+		ctx.SetBody(data)
+
 	}
 
 	return nil
@@ -46,15 +53,15 @@ func FUpdate(ctx *routing.Context) error{
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(u)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(models.Error{Message: "StatusConflict"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
@@ -72,15 +79,15 @@ func FDetails(ctx *routing.Context)error {
 	case database.OK:
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		data, _ := json.Marshal(u)
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.NotFound:
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
 		data, _ := json.Marshal(models.Error{Message: "User not found"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	case database.ForumConflict:
 		ctx.SetStatusCode(fasthttp.StatusConflict)
 		data, _ := json.Marshal(models.Error{Message: "StatusConflict"})
-		ctx.Write(data)
+		ctx.SetBody(data)
 	}
 	return nil
 }
